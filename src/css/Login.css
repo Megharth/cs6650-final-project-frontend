@@ -1,0 +1,21 @@
+#login {
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 200px;
+    width: 500px;
+    box-shadow: 0 0 8px 2px #898989;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+#login .MuiTextField-root {
+    display: block;
+    margin: 15px 0 15px 0;
+}
+
+#login .MuiButton-root {
+    display: block;
+    margin: 0 auto;
+}
