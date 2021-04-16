@@ -1,12 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './css/index.css';
-import App from './components/App';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
+
+// component imports
+import Login from './components/Login';
+import Chat from './components/Chat';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Router>
+      <Switch>
+        <Route path="/chat">
+          <Chat />
+        </Route>
+        <Route path="/">
+          <Login />
+        </Route>
+      </Switch>
+    </Router>
   </React.StrictMode>,
   document.getElementById('root')
 );
