@@ -32,6 +32,37 @@ const Chat = () => {
     }, []);
 
     useEffect(() => {
+        fetch(process.env.REACT_APP_API_URL + 'chats/' + window.localStorage.getItem('user'))
+            .then(async (response) => {
+                const {messages} = await response.json();
+                const chats = {};
+                messages.forEach(message => {
+                    if(message.sender === window.localStorage.getItem('user')){
+                        if(chats[message.receiver]) {
+                            chats[message.receiver].messages.push(message);
+                        } else {
+                            chats[message.receiver] = {
+                                messages: [message],
+                                user: message.receiver
+                            }
+                        }
+                    } else{
+                        if(chats[message.sender]) 
+                            chats[message.sender].messages.push(message);
+                        else {
+                            chats[message.sender] = {
+                                messages: [message],
+                                user: message.sender
+                            }
+                        }
+                    }
+                });
+
+                setChats(prevChats => Object.assign({}, chats));
+            })
+    }, []);
+
+    useEffect(() => {
         socket.on("connect_error", (err) => {
             console.log(err.message)
         });
