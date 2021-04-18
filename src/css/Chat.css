@@ -142,10 +142,6 @@ body {
     background-color: green !important;
 }
 
-.offline .MuiBadge-colorPrimary {
-    background-color: black;
-}
-
 #left-pane .MuiInput-root {
     padding: 10px;
     width: 100%;

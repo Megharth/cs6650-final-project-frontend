@@ -74,7 +74,11 @@ const Chat = () => {
     return(
         <div>
             <Grid container spacing={0}>
-                <LeftPane users={users} setSelectedUser={setSelectedUser} chats={chats} />
+                <LeftPane users={users} 
+                    setSelectedUser={setSelectedUser} 
+                    chats={chats}
+                    setChats={setChats} 
+                />
                 <RightPane users={users}    
                     selectedUser={selectedUser}
                     chats={chats}

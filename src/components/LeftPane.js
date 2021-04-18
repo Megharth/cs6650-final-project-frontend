@@ -21,14 +21,16 @@ import SearchIcon from '@material-ui/icons/Search';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
+import GroupIcon from '@material-ui/icons/Group';
 
-const LeftPane = ({users, setSelectedUser, chats}) => {
+const LeftPane = ({users, setSelectedUser, chats, setChats}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
     const [roomName, setRoomName] = useState('');
     const [search, setSearch] = useState('');
     const history = useHistory(); 
+    const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     useEffect(() => {
         fetch(process.env.REACT_APP_API_URL + 'user/' + window.localStorage.getItem('user'))
@@ -41,10 +43,9 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
     }, []);
 
     const getLastMessage = (chats, email) => {
-        return chats[email] ? chats[email].messages[chats[email].messages.length - 1].message : 'Start a conversation';
+        return chats[email] && chats[email].messages.length > 0 ? chats[email].messages[chats[email].messages.length - 1].message : 'Start a conversation';
     }
     const createList = (users) => {
-        
         return Object.keys(users).length > 0 ? (
             <List>
                 {
@@ -55,13 +56,15 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
                                 setSearch('');
                             }}>
                                 <ListItemIcon>
-                                    <Badge 
-                                        variant="dot" 
-                                        overlap="circle" 
-                                        className={user.online ? 'online' : 'offline'} 
-                                        color="primary">
-                                        <AccountCircleIcon fontSize="large" />
-                                    </Badge>
+                                    {user.online ? (
+                                        <Badge 
+                                            variant="dot" 
+                                            overlap="circle" 
+                                            className="online" 
+                                            color="primary">
+                                            <AccountCircleIcon fontSize="large" />
+                                        </Badge>
+                                    ) : user.code ? <GroupIcon fontSize="large" /> : <AccountCircleIcon fontSize="large" />}
                                 </ListItemIcon>
                                 <ListItemText primary={user.name} secondary={getLastMessage(chats, email)} />
                             </ListItem>
@@ -91,8 +94,32 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
         console.log(result);
     }
 
-    const createRoom = () => {
+    const generateString = () => {
+        let result = ' ';
+        const charactersLength = characters.length;
+        for ( let i = 0; i < 5; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+    
+        return result;
+    }
 
+    const createRoom = () => {
+        const code = generateString();
+        setChats(prevChats => {
+            prevChats[code] = {
+                messages: [],
+                user: {
+                    name: roomName,
+                    code,
+                }
+            }
+
+            return Object.assign({}, prevChats);
+        });
+
+        setRoomMenu(null);
+        setRoomName('');
     }
 
     return(
@@ -109,7 +136,9 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
                 }
             />
             <div className="chat-list">                        
-                {search === '' ? createList(Object.entries(chats).map(([email, _obj]) => { return [email, users[email]]})) : 
+                {search === '' ? createList(
+                        Object.entries(chats).map(([email, obj]) => obj.user.name ? [email, obj.user] : [email, users[email]] )
+                    ) : 
                     createList(
                         Object.entries(users).filter(([email, user]) => email.includes(search) || user.name.includes(search) )
                     )
