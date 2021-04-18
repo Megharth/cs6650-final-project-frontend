@@ -10,10 +10,13 @@ body {
     position: relative;
     height: 100vh;
     width: 100%;
-    overflow-y: auto;
     box-shadow: 2px 0 4px #898989;
 }
 
+.chat-list {
+    height: 92%;
+    overflow-y: auto;
+}
 #right-pane {
     position: relative;
     width: 100%;
@@ -96,4 +99,20 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     font-size: 22px;
+}
+
+.actions {
+    background-color: rgb(0, 71, 204);
+    box-shadow: 0 -2px 4px #898989;
+    height: 8%;
+    color: white;
+    font-size: 43px;
+    text-align: center;
+}
+
+.actions .action {
+    margin-left: 20px;
+    margin: 0 auto;
+    display: inline-block;
+    cursor: pointer;
 }
