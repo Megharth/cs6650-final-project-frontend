@@ -8,6 +8,7 @@ import {Grid,
     TextField,
     Card,
     Button,
+    Badge,
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -31,15 +32,23 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
         })
     }, []);
 
-    const createList = (emails) => {
-        return emails.length > 0 ? (
+    const createList = (users) => {
+        return Object.keys(users).length > 0 ? (
             <List>
                 {
-                    emails.map(user => (
-                        <div key={user}>
-                            <ListItem button onClick={() => setSelectedUser(user)}>
-                                <ListItemIcon><AccountCircleIcon fontSize="large" /></ListItemIcon>
-                                <ListItemText primary={user} secondary={chats[user] ? chats[user][chats[user].length - 1].message : 'Start a conversation'} />
+                    Object.entries(users).map(([email, user]) => (
+                        <div key={email}>
+                            <ListItem button onClick={() => setSelectedUser({name: user.name, email})}>
+                                <ListItemIcon>
+                                    <Badge 
+                                        variant="dot" 
+                                        overlap="circle" 
+                                        className={user.online ? 'online' : 'offline'} 
+                                        color="primary">
+                                        <AccountCircleIcon fontSize="large" />
+                                    </Badge>
+                                </ListItemIcon>
+                                <ListItemText primary={user.name} secondary={chats[email] ? chats[email][chats[email].length - 1].message : 'Start a conversation'} />
                             </ListItem>
                             <Divider />
                         </div>
@@ -69,7 +78,7 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
     return(
         <Grid id="left-pane" item sm={3} xs={12}>
             <div className="chat-list">                        
-                {createList(Object.keys(users))}
+                {createList(users)}
             </div>
             <div className="actions">
                 <PersonOutlineOutlinedIcon 

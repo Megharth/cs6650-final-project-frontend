@@ -16,27 +16,42 @@ const Chat = () => {
     const [chats, setChats] = useState({});
 
     useEffect(() => {
+        fetch(process.env.REACT_APP_API_URL + 'users')
+            .then(async (response) => {
+                const {users} = await response.json();
+                setUsers(() => {
+                    const temp = {}; 
+                    users
+                        .filter((user) => user.email !== window.localStorage.getItem('user'))
+                        .forEach((user) => {
+                            temp[user.email] = {name: user.name, online:user.online}
+                        });
+                    return Object.assign({}, temp);
+                });
+            })
+    }, []);
+
+    useEffect(() => {
         socket.on("connect_error", (err) => {
             console.log(err.message)
         });
 
-        socket.on("users", (newUsers) => {
-            delete newUsers[window.localStorage.getItem('user')];
-            setUsers(newUsers);
-        });
-
         socket.on("new connection", (user) => {
+            console.log('new connection', user);
             setUsers(prevUsers => {
-                prevUsers[user.email] = user.id;
+                if(prevUsers[user.email])
+                    prevUsers[user.email].online = true
                 return Object.assign({}, prevUsers);
-            });
+            })
         });
 
         socket.on("user disconnected", (email) => {
+            console.log('user disconnected', email);
             setUsers(prevUsers => {
-                delete prevUsers[email];
+                if(prevUsers[email])
+                    prevUsers[email].online = false
                 return Object.assign({}, prevUsers);
-            });
+            })
         });
 
         socket.on("message", ({message, from}) => {

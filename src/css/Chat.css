@@ -134,3 +134,11 @@ body {
     margin: 10px auto 0 auto;
     display: block;
 }
+
+.online .MuiBadge-colorPrimary {
+    background-color: green !important;
+}
+
+.offline .MuiBadge-colorPrimary {
+    background-color: black;
+}

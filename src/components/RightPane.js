@@ -9,9 +9,9 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
     const [input, setInput] = useState('');
 
     const renderMessages = () => {
-        return chats[selectedUser] ? chats[selectedUser].map(msg => (
+        return chats[selectedUser.email] ? chats[selectedUser.email].map(msg => (
             <div className="message" key={msg.time}>
-                <span className={msg.sender === selectedUser ? 'left-message' : 'right-message'}>{msg.message}</span>
+                <span className={msg.sender === selectedUser.email ? 'left-message' : 'right-message'}>{msg.message}</span>
             </div>
         )) : (
             <div className="no-user">Type a message to start chatting</div>
@@ -19,32 +19,29 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
     }
 
     const sendMessage = () => {
-        console.log(socket);
         socket.emit('message', {
             message: {
                 message: input,
                 sender: window.localStorage.getItem('user'),
-                receiver: selectedUser,
+                receiver: selectedUser.email,
                 time: new Date(), 
             },
-            to: users[selectedUser]
+            to: selectedUser.email
         });
 
         setChats(prevChats => {
             const message = {
                 message: input,
                 sender: window.localStorage.getItem('user'),
-                receiver: selectedUser,
+                receiver: selectedUser.email,
                 time: new Date(), 
             };
 
-            if(prevChats[selectedUser] && prevChats[selectedUser].length > 0){ 
-                prevChats[selectedUser].push(message);
+            if(prevChats[selectedUser.email] && prevChats[selectedUser.email].length > 0){ 
+                prevChats[selectedUser.email].push(message);
             } else {
-                prevChats[selectedUser] = [message];
+                prevChats[selectedUser.email] = [message];
             }
-            console.log(prevChats);
-
             return Object.assign({}, prevChats);
         });
 
@@ -56,7 +53,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
             {selectedUser ? (
                 <div id="right-pane">
                     <div className="header-container">
-                        <span className="header-username">{selectedUser}</span>
+                        <span className="header-username">{selectedUser.name}</span>
                     </div>
                 
                     <div className="message-container">
