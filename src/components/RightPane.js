@@ -9,9 +9,9 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
     const [input, setInput] = useState('');
 
     const renderMessages = () => {
-        return chats[selectedUser.email] ? chats[selectedUser.email].map(msg => (
+        return chats[selectedUser] ? chats[selectedUser].messages.map(msg => (
             <div className="message" key={msg.time}>
-                <span className={msg.sender === selectedUser.email ? 'left-message' : 'right-message'}>{msg.message}</span>
+                <span className={msg.sender === selectedUser ? 'left-message' : 'right-message'}>{msg.message}</span>
             </div>
         )) : (
             <div className="no-user">Type a message to start chatting</div>
@@ -23,24 +23,27 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
             message: {
                 message: input,
                 sender: window.localStorage.getItem('user'),
-                receiver: selectedUser.email,
+                receiver: selectedUser,
                 time: new Date(), 
             },
-            to: selectedUser.email
+            to: selectedUser
         });
 
         setChats(prevChats => {
             const message = {
                 message: input,
                 sender: window.localStorage.getItem('user'),
-                receiver: selectedUser.email,
+                receiver: selectedUser,
                 time: new Date(), 
             };
 
-            if(prevChats[selectedUser.email] && prevChats[selectedUser.email].length > 0){ 
-                prevChats[selectedUser.email].push(message);
+            if(prevChats[selectedUser] && prevChats[selectedUser].messages.length > 0){ 
+                prevChats[selectedUser].messages.push(message);
             } else {
-                prevChats[selectedUser.email] = [message];
+                prevChats[selectedUser] = {
+                    messages: [message],
+                    user: users[selectedUser]
+                };
             }
             return Object.assign({}, prevChats);
         });
@@ -53,7 +56,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
             {selectedUser ? (
                 <div id="right-pane">
                     <div className="header-container">
-                        <span className="header-username">{selectedUser.name}</span>
+                        <span className="header-username">{users[selectedUser] ? users[selectedUser].name : selectedUser}</span>
                     </div>
                 
                     <div className="message-container">
@@ -68,9 +71,9 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
                                 onChange={(e) => {
                                     setInput(e.target.value);
                                 }}
-                                // onKeyPress={(e) => { 
-                                //     if(e.key === 'Enter') {sendMessage(); console.log('here');} 
-                                // }}
+                                onKeyPress={(e) => { 
+                                    if(e.key === 'Enter') {sendMessage();} 
+                                }}
                                 variant="outlined" 
                                 value={input}
                                 placeholder="Type your Message"

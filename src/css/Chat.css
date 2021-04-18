@@ -14,7 +14,7 @@ body {
 }
 
 .chat-list {
-    height: 85%;
+    height: 84%;
     overflow-y: auto;
 }
 #right-pane {
@@ -55,23 +55,23 @@ body {
 }
 .message-container {
     position: absolute;
-    top: 80px;
+    top: 55px;
     padding: 10px;
-    height: 76%;
+    height: 80%;
     width: 98%;
     overflow-y: auto;
     
 }
 
 .header-container {
-    height: 72px;
+    height: 52px;
     box-shadow: 2px 2px 4px #898989;
     border-radius: 5px;
 }
 
 .header-username {
     display: block;
-    padding: 25px;
+    padding: 12px;
     font-size: 20px;
 }
 .input-container {
@@ -102,17 +102,17 @@ body {
 }
 
 .actions {
+    display: flex;
     background-color: rgb(0, 71, 204);
     box-shadow: 0 -2px 4px #898989;
-    height: 8%;
     color: white;
-    font-size: 43px;
-    text-align: center;
+    height: 16%;
+    justify-content: space-evenly;
 }
 
 .actions .action {
     margin-left: 20px;
-    margin: 0 auto;
+    margin: 13px auto;
     display: inline-block;
     cursor: pointer;
 }
@@ -121,7 +121,8 @@ body {
     padding: 10px;
     width: 200px;
     box-shadow: 2px 2px 4px black;
-    opacity: 0.8;
+    opacity: 0.9;
+    z-index: 100;
 }
 
 .account-menu .MuiTextField-root {
@@ -134,7 +135,9 @@ body {
     margin: 10px auto 0 auto;
     display: block;
 }
-
+.MuiBadge-badge {
+    z-index: 0 !important;
+}
 .online .MuiBadge-colorPrimary {
     background-color: green !important;
 }

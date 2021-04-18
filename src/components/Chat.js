@@ -56,10 +56,13 @@ const Chat = () => {
 
         socket.on("message", ({message, from}) => {
             setChats(prevChats => {
-                if(prevChats[from] && prevChats[from].length > 0)
-                    prevChats[from].push(message);
+                if(prevChats[from] && prevChats[from].messages.length > 0)
+                    prevChats[from].messages.push(message);
                 else
-                    prevChats[from] = [message]
+                    prevChats[from] = {
+                        messages: [message],
+                        user: from
+                    }
 
                 return Object.assign({}, prevChats);
             })

@@ -59,6 +59,9 @@ const Login = () => {
 		  variant="outlined" 
 		  label="password" 
 		  type="password" 
+		  onKeyPress={(e) => { 
+			if(e.key === 'Enter') login(); 
+		  }}
 		  fullWidth/>
 		<Button variant="contained" size="large" color="primary" onClick={login}>Login</Button>
 		<Button variant="contained" size="large" color="secondary" onClick={register}>Register</Button>
