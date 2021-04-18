@@ -10,7 +10,7 @@ import {Grid,
     Button,
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
@@ -18,7 +18,18 @@ import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 
 const LeftPane = ({users, setSelectedUser, chats}) => {
     const [anchorEl, setAnchorEl] = useState(null);
+    const [name, setName] = useState('');
     const history = useHistory(); 
+
+    useEffect(() => {
+        fetch(process.env.REACT_APP_API_URL + 'user/' + window.localStorage.getItem('user'))
+        .then(async (result) => {
+            const {name} = await result.json();
+            if(name) {
+                setName(name);
+            }
+        })
+    }, []);
 
     const createList = (emails) => {
         return emails.length > 0 ? (
@@ -44,6 +55,17 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
         history.push('/');
         window.localStorage.setItem('user', null);
     }
+
+    const saveName = async () => {
+        const result = await fetch(process.env.REACT_APP_API_URL + 'updateName', {
+            method: 'POST',
+            body: JSON.stringify({email: window.localStorage.getItem('user'), name}),
+            headers: {
+                'Content-Type': 'Application/json'
+            }
+        });
+        console.log(result);
+    }
     return(
         <Grid id="left-pane" item sm={3} xs={12}>
             <div className="chat-list">                        
@@ -65,9 +87,14 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
                     open={Boolean(anchorEl)}
                 >
                     <Card className="account-menu">
-                        <TextField label="Email" variant="outlined" disabled value={window.localStorage.getItem('user')}></TextField>
-                        <TextField label="Name" variant="outlined" placeholder="Enter your name"></TextField>
-                        <Button color="primary" variant="outlined">Save</Button>
+                        <TextField label="Email" variant="outlined" disabled value={window.localStorage.getItem('user')} />
+                        <TextField label="Name" 
+                            variant="outlined" 
+                            placeholder="Enter your name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <Button color="primary" onClick={saveName} variant="outlined">Save</Button>
                     </Card>
                 </Popper>
             </div>
