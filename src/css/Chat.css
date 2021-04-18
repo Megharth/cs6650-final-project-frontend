@@ -116,3 +116,21 @@ body {
     display: inline-block;
     cursor: pointer;
 }
+
+.account-menu {
+    padding: 10px;
+    width: 200px;
+    box-shadow: 2px 2px 4px black;
+    opacity: 0.8;
+}
+
+.account-menu .MuiTextField-root {
+    display: block;
+    width: 100%;
+    margin: 10px 0 10px 0;
+}
+
+.account-menu .MuiButtonBase-root {
+    margin: 10px auto 0 auto;
+    display: block;
+}
