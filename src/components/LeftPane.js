@@ -9,10 +9,13 @@ import {Grid,
     Card,
     Button,
     Badge,
+    Input,
+    InputAdornment
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
+import SearchIcon from '@material-ui/icons/Search';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
@@ -20,6 +23,7 @@ import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 const LeftPane = ({users, setSelectedUser, chats}) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [name, setName] = useState('');
+    const [search, setSearch] = useState('');
     const history = useHistory(); 
 
     useEffect(() => {
@@ -36,7 +40,7 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
         return Object.keys(users).length > 0 ? (
             <List>
                 {
-                    Object.entries(users).map(([email, user]) => (
+                    users.map(([email, user]) => (
                         <div key={email}>
                             <ListItem button onClick={() => setSelectedUser({name: user.name, email})}>
                                 <ListItemIcon>
@@ -77,8 +81,23 @@ const LeftPane = ({users, setSelectedUser, chats}) => {
     }
     return(
         <Grid id="left-pane" item sm={3} xs={12}>
+            <Input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); }}
+                id="input-with-icon-adornment"
+                placeholder="Search contacts"
+                startAdornment={
+                    <InputAdornment position="start">
+                    <SearchIcon />
+                    </InputAdornment>
+                }
+            />
             <div className="chat-list">                        
-                {createList(users)}
+                {search === '' ? createList(Object.entries(users)) : 
+                    createList(
+                        Object.entries(users).filter(([email, user]) => email.includes(search) || user.name.includes(search) )
+                    )
+                }
             </div>
             <div className="actions">
                 <PersonOutlineOutlinedIcon 

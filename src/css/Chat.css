@@ -14,7 +14,7 @@ body {
 }
 
 .chat-list {
-    height: 92%;
+    height: 85%;
     overflow-y: auto;
 }
 #right-pane {
@@ -141,4 +141,10 @@ body {
 
 .offline .MuiBadge-colorPrimary {
     background-color: black;
+}
+
+#left-pane .MuiInput-root {
+    padding: 10px;
+    width: 100%;
+    box-shadow: 2px 2px #898989;
 }
