@@ -64,7 +64,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
                                             color="primary">
                                             <AccountCircleIcon fontSize="large" />
                                         </Badge>
-                                    ) : user.code ? <GroupIcon fontSize="large" /> : <AccountCircleIcon fontSize="large" />}
+                                    ) : user.room ? <GroupIcon fontSize="large" /> : <AccountCircleIcon fontSize="large" />}
                                 </ListItemIcon>
                                 <ListItemText primary={user.name} secondary={getLastMessage(chats, email)} />
                             </ListItem>
@@ -91,7 +91,6 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
                 'Content-Type': 'Application/json'
             }
         });
-        console.log(result);
     }
 
     const generateString = () => {
@@ -111,22 +110,21 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
                 messages: [],
                 user: {
                     name: roomName,
-                    code,
+                    user: code,
+                    room: true
                 }
             }
 
             return Object.assign({}, prevChats);
         });
 
-        const resposne = await fetch(process.env.REACT_APP_API_URL + 'createRoom', {
+        await fetch(process.env.REACT_APP_API_URL + 'createRoom', {
             method: 'POST',
-            body: JSON.stringify({code, user: thisUser, name: roomName}),
+            body: JSON.stringify({email: code, user: thisUser, name: roomName}),
             headers: {
                 'Content-Type': 'Application/json'
             }
         });
-
-        console.log('response', resposne);
 
         setRoomMenu(null);
         setRoomName('');
@@ -147,7 +145,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
             />
             <div className="chat-list">                        
                 {search === '' ? createList(
-                        Object.entries(chats).map(([email, obj]) => obj.user.name ? [email, obj.user] : [email, users[email]] )
+                        Object.entries(chats).map(([email, obj]) => obj.user ? [email, obj] : [email, users[email]] )
                     ) : 
                     createList(
                         Object.entries(users).filter(([email, user]) => (email.includes(search) || user.name.includes(search)) )

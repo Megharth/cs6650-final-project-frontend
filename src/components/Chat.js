@@ -66,14 +66,15 @@ const Chat = () => {
                         }
                     }
                 });
-                // console.log(chatList, chats);
-                // chatList.forEach(user => {
-                //     if(chats[user.email])
-                //         chats[user.email] = {...chats[user.email], name: user.name, room: user.room};
-                //     else 
-                //         chats[user.email] = {name: user.name, room: user.room};
-                // });
-
+                chatList.forEach(user => {
+                    if(user.email !== thisUser) {
+                        if(chats[user.email])
+                            chats[user.email] = {...chats[user.email], name: user.name, room: user.room, online: user.online};
+                        else 
+                            chats[user.email] = {messages: [], name: user.name, room: user.room, user: user.email, online: user.online};
+                        
+                    }
+                });
                 setChats(() => Object.assign({}, chats));
             })
     }, [thisUser]);
@@ -89,7 +90,12 @@ const Chat = () => {
                 if(prevUsers[user.email])
                     prevUsers[user.email].online = true
                 return Object.assign({}, prevUsers);
-            })
+            });
+            setChats(prevChats => {
+                if(prevChats[user.email])
+                    prevChats[user.email].online = true
+                return Object.assign({}, prevChats);
+            });
         });
 
         socket.on("user disconnected", (email) => {
@@ -98,7 +104,12 @@ const Chat = () => {
                 if(prevUsers[email])
                     prevUsers[email].online = false
                 return Object.assign({}, prevUsers);
-            })
+            });
+            setChats(prevChats => {
+                if(prevChats[email])
+                    prevChats[email].online = false
+                return Object.assign({}, prevChats);
+            });
         });
 
         socket.on("message", ({message, from}) => {
