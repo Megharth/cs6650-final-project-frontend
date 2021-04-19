@@ -28,6 +28,7 @@ const Login = () => {
 	setToastStatus(body.status);
 	setShowToast(true);
 	if(!errorCodes.has(body.status)){
+		window.localStorage.setItem('user', email);
 		history.push({
 			pathname: 'chat',
 			state: {user: email}

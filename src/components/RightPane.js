@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import SendIcon from '@material-ui/icons/Send';
 
-const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
+const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => {
     const [input, setInput] = useState('');
 
     const renderMessages = () => {
@@ -44,6 +44,14 @@ const RightPane = ({users, selectedUser, chats, setChats, socket}) => {
                     messages: [message],
                     user: users[selectedUser]
                 };
+                
+                fetch(process.env.REACT_APP_API_URL + 'addToChat', {
+                    method: 'POST',
+                    body: JSON.stringify({receiver: selectedUser, sender: thisUser}),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
             }
             return Object.assign({}, prevChats);
         });

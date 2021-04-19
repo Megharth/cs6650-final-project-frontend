@@ -23,7 +23,7 @@ import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined'
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import GroupIcon from '@material-ui/icons/Group';
 
-const LeftPane = ({users, setSelectedUser, chats, setChats}) => {
+const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
@@ -104,7 +104,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats}) => {
         return result;
     }
 
-    const createRoom = () => {
+    const createRoom = async () => {
         const code = generateString();
         setChats(prevChats => {
             prevChats[code] = {
@@ -117,6 +117,16 @@ const LeftPane = ({users, setSelectedUser, chats, setChats}) => {
 
             return Object.assign({}, prevChats);
         });
+
+        const resposne = await fetch(process.env.REACT_APP_API_URL + 'createRoom', {
+            method: 'POST',
+            body: JSON.stringify({code, user: thisUser, name: roomName}),
+            headers: {
+                'Content-Type': 'Application/json'
+            }
+        });
+
+        console.log('response', resposne);
 
         setRoomMenu(null);
         setRoomName('');
@@ -140,7 +150,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats}) => {
                         Object.entries(chats).map(([email, obj]) => obj.user.name ? [email, obj.user] : [email, users[email]] )
                     ) : 
                     createList(
-                        Object.entries(users).filter(([email, user]) => email.includes(search) || user.name.includes(search) )
+                        Object.entries(users).filter(([email, user]) => (email.includes(search) || user.name.includes(search)) )
                     )
                 }
             </div>

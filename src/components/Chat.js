@@ -18,7 +18,11 @@ const Chat = () => {
     const location = useLocation();
 
     useEffect(() => {
-        setThisUser(location.state.user);
+        if(location.state.user)
+            setThisUser(location.state.user);
+        else
+            setThisUser(window.localStorage.getItem('user'));
+            
         socket.auth = {email: location.state.user};
         socket.connect();
         fetch(process.env.REACT_APP_API_URL + 'users')
@@ -39,7 +43,7 @@ const Chat = () => {
     useEffect(() => {
         fetch(process.env.REACT_APP_API_URL + 'chats/' + thisUser)
             .then(async (response) => {
-                const {messages} = await response.json();
+                const {messages, chatList} = await response.json();
                 const chats = {};
                 messages.forEach(message => {
                     if(message.sender === thisUser){
@@ -62,8 +66,15 @@ const Chat = () => {
                         }
                     }
                 });
+                // console.log(chatList, chats);
+                // chatList.forEach(user => {
+                //     if(chats[user.email])
+                //         chats[user.email] = {...chats[user.email], name: user.name, room: user.room};
+                //     else 
+                //         chats[user.email] = {name: user.name, room: user.room};
+                // });
 
-                setChats(prevChats => Object.assign({}, chats));
+                setChats(() => Object.assign({}, chats));
             })
     }, [thisUser]);
 
@@ -114,12 +125,14 @@ const Chat = () => {
                     setSelectedUser={setSelectedUser} 
                     chats={chats}
                     setChats={setChats} 
+                    thisUser={thisUser}
                 />
                 <RightPane users={users}    
                     selectedUser={selectedUser}
                     chats={chats}
                     setChats={setChats}
                     socket={socket}
+                    thisUser={thisUser}
                 />
             </Grid>
         </div>
