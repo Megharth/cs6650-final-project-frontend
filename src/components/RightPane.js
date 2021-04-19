@@ -64,7 +64,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
             {selectedUser ? (
                 <div id="right-pane">
                     <div className="header-container">
-                        <span className="header-username">{users[selectedUser] ? users[selectedUser].name : selectedUser}</span>
+                        <span className="header-username">{users[selectedUser].name} {users[selectedUser].room && `| code: ${selectedUser}`}</span>
                     </div>
                 
                     <div className="message-container">

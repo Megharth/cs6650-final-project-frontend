@@ -33,7 +33,7 @@ const Chat = () => {
                     users
                         .filter((user) => user.email !== thisUser)
                         .forEach((user) => {
-                            temp[user.email] = {name: user.name, online:user.online}
+                            temp[user.email] = {name: user.name, online:user.online, room: user.room}
                         });
                     return Object.assign({}, temp);
                 });
