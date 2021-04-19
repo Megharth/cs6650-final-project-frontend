@@ -1,43 +1,48 @@
 import { Grid } from '@material-ui/core';
 import { io } from 'socket.io-client';
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import LeftPane from './LeftPane';
 import RightPane from './RightPane';
 
 import '../css/Chat.css';
 
 const socket = io(process.env.REACT_APP_SOCKET_URL, { autoConnect: false });
-socket.auth = {email: window.localStorage.getItem('user')};
-socket.connect();
+
 
 const Chat = () => {
+    const [thisUser, setThisUser] = useState('');
     const [users, setUsers] = useState({});
     const [selectedUser, setSelectedUser] = useState('');
     const [chats, setChats] = useState({});
+    const location = useLocation();
 
     useEffect(() => {
+        setThisUser(location.state.user);
+        socket.auth = {email: location.state.user};
+        socket.connect();
         fetch(process.env.REACT_APP_API_URL + 'users')
             .then(async (response) => {
                 const {users} = await response.json();
                 setUsers(() => {
                     const temp = {}; 
                     users
-                        .filter((user) => user.email !== window.localStorage.getItem('user'))
+                        .filter((user) => user.email !== thisUser)
                         .forEach((user) => {
                             temp[user.email] = {name: user.name, online:user.online}
                         });
                     return Object.assign({}, temp);
                 });
-            })
-    }, []);
+            });
+    }, [location.state.user, thisUser]);
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + 'chats/' + window.localStorage.getItem('user'))
+        fetch(process.env.REACT_APP_API_URL + 'chats/' + thisUser)
             .then(async (response) => {
                 const {messages} = await response.json();
                 const chats = {};
                 messages.forEach(message => {
-                    if(message.sender === window.localStorage.getItem('user')){
+                    if(message.sender === thisUser){
                         if(chats[message.receiver]) {
                             chats[message.receiver].messages.push(message);
                         } else {
@@ -60,7 +65,7 @@ const Chat = () => {
 
                 setChats(prevChats => Object.assign({}, chats));
             })
-    }, []);
+    }, [thisUser]);
 
     useEffect(() => {
         socket.on("connect_error", (err) => {

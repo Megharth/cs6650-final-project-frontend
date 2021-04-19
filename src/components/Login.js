@@ -28,8 +28,10 @@ const Login = () => {
 	setToastStatus(body.status);
 	setShowToast(true);
 	if(!errorCodes.has(body.status)){
-		history.push('/chat');
-		window.localStorage.setItem('user', email);
+		history.push({
+			pathname: 'chat',
+			state: {user: email}
+		});
 	}
   }
 
