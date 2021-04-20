@@ -137,6 +137,7 @@ const Chat = () => {
                     chats={chats}
                     setChats={setChats} 
                     thisUser={thisUser}
+                    setUsers={setUsers}
                 />
                 <RightPane users={users}    
                     selectedUser={selectedUser}

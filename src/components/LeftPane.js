@@ -23,7 +23,7 @@ import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined'
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import GroupIcon from '@material-ui/icons/Group';
 
-const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
+const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
@@ -45,14 +45,15 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
     const getLastMessage = (chats, email) => {
         return chats[email] && chats[email].messages.length > 0 ? chats[email].messages[chats[email].messages.length - 1].message : 'Start a conversation';
     }
+
     const createList = (users) => {
         return Object.keys(users).length > 0 ? (
             <List>
                 {
                     users.map(([email, user]) => (
-                        <div key={email}>
+                        <div key={email.trim()}>
                             <ListItem button onClick={() => {
-                                setSelectedUser(email);
+                                setSelectedUser(email.trim());
                                 setSearch('');
                             }}>
                                 <ListItemIcon>
@@ -106,21 +107,30 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
     const createRoom = async () => {
         const code = generateString();
         setChats(prevChats => {
-            prevChats[code] = {
+            prevChats[code.trim()] = {
                 messages: [],
-                user: {
-                    name: roomName,
-                    user: code,
-                    room: true
-                }
+                name: roomName,
+                user: code.trim(),
+                room: true,
+                online: false
             }
 
             return Object.assign({}, prevChats);
         });
 
+        setUsers(prevUsers => {
+            prevUsers[code.trim()] = {
+                name: roomName,
+                online: false,
+                room: true
+            }
+
+            return Object.assign({}, prevUsers);
+        })
+
         await fetch(process.env.REACT_APP_API_URL + 'createRoom', {
             method: 'POST',
-            body: JSON.stringify({email: code, user: thisUser, name: roomName}),
+            body: JSON.stringify({email: code.trim(), user: thisUser, name: roomName}),
             headers: {
                 'Content-Type': 'Application/json'
             }
@@ -143,9 +153,9 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser}) => {
                     </InputAdornment>
                 }
             />
-            <div className="chat-list">                        
+            <div className="chat-list">     
                 {search === '' ? createList(
-                        Object.entries(chats).map(([email, obj]) => obj.user ? [email, obj] : [email, users[email]] )
+                        Object.entries(chats).map(([email, obj]) => obj.user ? [email.trim(), obj] : [email.trim(), users[email.trim()]] )
                     ) : 
                     createList(
                         Object.entries(users).filter(([email, user]) => (email.includes(search) || user.name.includes(search)) )

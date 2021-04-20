@@ -1,5 +1,6 @@
 import {Grid, 
     TextField,
+    Button,
 } from '@material-ui/core';
 import { useState } from 'react';
 
@@ -29,7 +30,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
             to: selectedUser
         });
 
-        setChats(prevChats => {
+        setChats((prevChats) => {
             const message = {
                 message: input,
                 sender: window.localStorage.getItem('user'),
@@ -42,9 +43,9 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
             } else {
                 prevChats[selectedUser] = {
                     messages: [message],
-                    user: users[selectedUser]
+                    ...users[selectedUser]
                 };
-                
+                                
                 fetch(process.env.REACT_APP_API_URL + 'addToChat', {
                     method: 'POST',
                     body: JSON.stringify({receiver: selectedUser, sender: thisUser}),
@@ -59,12 +60,34 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
         setInput('');
     }
 
+    const joinRoom = (roomCode) => {
+        setChats(prevChats => {
+            prevChats[roomCode] = {
+                messages: [],
+                ...users[roomCode]
+            }
+            return Object.assign({}, prevChats);
+        });
+    }
     return(
         <Grid item sm={9} xs={12}>
+            {console.log(users, selectedUser)}
             {selectedUser ? (
                 <div id="right-pane">
                     <div className="header-container">
-                        <span className="header-username">{users[selectedUser].name} {users[selectedUser].room && `| code: ${selectedUser}`}</span>
+                        <span className="header-username">
+                            {users[selectedUser].name} {users[selectedUser].room && `| code: ${selectedUser}`}
+                            {users[selectedUser].room && (
+                                <Button 
+                                    className="join-btn" 
+                                    variant="outlined" 
+                                    disabled={chats[selectedUser]}
+                                    onClick={() => joinRoom(selectedUser)}
+                                >
+                                    {chats[selectedUser] ? 'Joined' : 'Join'}
+                                </Button>
+                            )}
+                        </span>
                     </div>
                 
                     <div className="message-container">

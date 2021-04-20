@@ -147,3 +147,10 @@ body {
     width: 100%;
     box-shadow: 2px 2px #898989;
 }
+
+.join-btn {
+    margin-left: 20px !important;
+    margin-bottom: 2px !important;
+    height: 20px;
+    color: rgb(0, 184, 0) !important;
+}
