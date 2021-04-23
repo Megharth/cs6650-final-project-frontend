@@ -154,3 +154,7 @@ body {
     height: 20px;
     color: rgb(0, 184, 0) !important;
 }
+
+.sender-name {
+    color: rgb(255, 136, 0);
+}

@@ -47,7 +47,7 @@ const Chat = () => {
                 const chats = {};
                 messages.forEach(message => {
                     if(message.sender === thisUser){
-                        if(chats[message.receiver]) {
+                        if(chats[message.receiver] && chats[message.receiver].messages) {
                             chats[message.receiver].messages.push(message);
                         } else {
                             chats[message.receiver] = {
@@ -55,7 +55,7 @@ const Chat = () => {
                                 user: message.receiver
                             }
                         }
-                    } else{
+                    } else if(message.receiver === thisUser) {
                         if(chats[message.sender]) 
                             chats[message.sender].messages.push(message);
                         else {
@@ -64,8 +64,18 @@ const Chat = () => {
                                 user: message.sender
                             }
                         }
+                    } else {
+                        if(chats[message.receiver] && chats[message.receiver].messages)
+                            chats[message.receiver].messages.push(message);
+                        else {
+                            chats[message.receiver] = {
+                                messages: [message],
+                                user: message.sender
+                            }
+                        }
                     }
                 });
+
                 chatList.forEach(user => {
                     if(user.email !== thisUser) {
                         if(chats[user.email])
@@ -126,6 +136,14 @@ const Chat = () => {
             })
         });
 
+        socket.on('groupMessage', ({message, from}) => {
+            // console.log(message, from);
+            setChats(prevChats => {
+                prevChats[from].messages.push(message);
+                return Object.assign({}, prevChats);
+            })
+        }) 
+
         return () => socket.disconnect();
     }, []);
 
@@ -138,6 +156,7 @@ const Chat = () => {
                     setChats={setChats} 
                     thisUser={thisUser}
                     setUsers={setUsers}
+                    socket={socket}
                 />
                 <RightPane users={users}    
                     selectedUser={selectedUser}

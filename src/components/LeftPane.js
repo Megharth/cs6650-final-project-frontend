@@ -22,8 +22,9 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import GroupIcon from '@material-ui/icons/Group';
+import { Socket } from 'socket.io-client';
 
-const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers}) => {
+const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, socket}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
@@ -33,20 +34,21 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers})
     const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + 'user/' + window.localStorage.getItem('user'))
+        fetch(process.env.REACT_APP_API_URL + 'user/' + thisUser)
         .then(async (result) => {
             const {name} = await result.json();
             if(name) {
                 setName(name);
             }
         })
-    }, []);
+    }, [thisUser]);
 
     const getLastMessage = (chats, email) => {
-        return chats[email] && chats[email].messages.length > 0 ? chats[email].messages[chats[email].messages.length - 1].message : 'Start a conversation';
+        return chats[email] && chats[email].messages && chats[email].messages.length > 0 ? chats[email].messages[chats[email].messages.length - 1].message : 'Start a conversation';
     }
 
     const createList = (users) => {
+        console.log(users);
         return Object.keys(users).length > 0 ? (
             <List>
                 {
@@ -87,7 +89,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers})
     const saveName = async () => {
         const result = await fetch(process.env.REACT_APP_API_URL + 'updateName', {
             method: 'POST',
-            body: JSON.stringify({email: window.localStorage.getItem('user'), name}),
+            body: JSON.stringify({email: thisUser, name}),
             headers: {
                 'Content-Type': 'Application/json'
             }
@@ -136,6 +138,8 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers})
             }
         });
 
+        // socket.emit('newRoom', )
+
         setRoomMenu(null);
         setRoomName('');
     }
@@ -155,7 +159,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers})
             />
             <div className="chat-list">     
                 {search === '' ? createList(
-                        Object.entries(chats).map(([email, obj]) => obj.user ? [email.trim(), obj] : [email.trim(), users[email.trim()]] )
+                        Object.entries(chats).map(([email, obj]) => obj.name ? [email.trim(), obj] : [email.trim(), users[email.trim()]] )
                     ) : 
                     createList(
                         Object.entries(users).filter(([email, user]) => (email.includes(search) || user.name.includes(search)) )
@@ -189,7 +193,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers})
                     open={Boolean(accMenu)}
                 >
                     <Card className="account-menu">
-                        <TextField label="Email" variant="outlined" disabled value={window.localStorage.getItem('user')} />
+                        <TextField label="Email" variant="outlined" disabled value={thisUser} />
                         <TextField label="Name" 
                             variant="outlined" 
                             placeholder="Enter your name"
