@@ -1,13 +1,28 @@
-import {Grid, 
+import {Grid,
     TextField,
     Button,
 } from '@material-ui/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import SendIcon from '@material-ui/icons/Send';
 
 const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => {
     const [input, setInput] = useState('');
+    const [messageTime, setMessageTime] = useState('');
+
+    ////////////////////////////////////////////////////////////////////////////
+    useEffect(() => {
+      // timesync in place on frontend side
+      socket.on('timesync', function (data) {
+        console.log('receive', data);
+        setMessageTime(data.time);
+        //ts.receive(null, data);
+      });
+    }, []);
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
 
     const renderMessages = () => {
         return chats[selectedUser] ? chats[selectedUser].messages.map(msg => (
@@ -26,23 +41,28 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
 
     const sendMessage = () => {
         console.log(users[selectedUser].room)
+        // we add timesync event
+        //
+        socket.emit('timesync');
+
         if(users[selectedUser].room) {
             socket.emit('groupMessage', {
                 message: {
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(),
+                    //time: new Date(),
+                    time: messageTime,
                 },
                 to: selectedUser
             });
 
-            setChats((prevChats) => {                
+            setChats((prevChats) => {
                 const message = {
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(), 
+                    time: new Date(),
                 };
 
                 prevChats[selectedUser].messages.push(message);
@@ -55,27 +75,27 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(), 
+                    time: new Date(),
                 },
                 to: selectedUser
             });
-    
+
             setChats((prevChats) => {
                 const message = {
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(), 
+                    time: new Date(),
                 };
-    
-                if(prevChats[selectedUser] && prevChats[selectedUser].messages.length > 0){ 
+
+                if(prevChats[selectedUser] && prevChats[selectedUser].messages.length > 0){
                     prevChats[selectedUser].messages.push(message);
                 } else {
                     prevChats[selectedUser] = {
                         messages: [message],
                         ...users[selectedUser]
                     };
-                                    
+
                     fetch(process.env.REACT_APP_API_URL + 'addToChat', {
                         method: 'POST',
                         body: JSON.stringify({receiver: selectedUser, sender: thisUser}),
@@ -87,7 +107,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                 return Object.assign({}, prevChats);
             });
         }
-        
+
 
         setInput('');
     }
@@ -96,7 +116,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
         await fetch(process.env.REACT_APP_API_URL + 'addRoom', {
             method: 'POST',
             body: JSON.stringify({
-                email: thisUser, 
+                email: thisUser,
                 room: {...users[roomCode], email: roomCode}
             }),
             headers: {
@@ -119,9 +139,9 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                         <span className="header-username">
                             {users[selectedUser].name} {users[selectedUser].room && `| code: ${selectedUser}`}
                             {users[selectedUser].room && (
-                                <Button 
-                                    className="join-btn" 
-                                    variant="outlined" 
+                                <Button
+                                    className="join-btn"
+                                    variant="outlined"
                                     disabled={chats[selectedUser] !== undefined}
                                     onClick={() => joinRoom(selectedUser)}
                                 >
@@ -130,23 +150,23 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                             )}
                         </span>
                     </div>
-                
+
                     <div className="message-container">
                         {renderMessages()}
                     </div>
-                    
+
                     <Grid container className="input-container">
                         <Grid item xs={11}>
-                            <TextField 
+                            <TextField
                                 className="message-input"
                                 fullWidth
                                 onChange={(e) => {
                                     setInput(e.target.value);
                                 }}
-                                onKeyPress={(e) => { 
-                                    if(e.key === 'Enter') {sendMessage();} 
+                                onKeyPress={(e) => {
+                                    if(e.key === 'Enter') {sendMessage();}
                                 }}
-                                variant="outlined" 
+                                variant="outlined"
                                 value={input}
                                 placeholder="Type your Message"
                             />

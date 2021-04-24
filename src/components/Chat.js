@@ -4,10 +4,41 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import LeftPane from './LeftPane';
 import RightPane from './RightPane';
+import { timesync } from 'timesync';
 
 import '../css/Chat.css';
 
 const socket = io(process.env.REACT_APP_SOCKET_URL, { autoConnect: false });
+
+// timesync in place on frontend side
+// const ts = timesync.create({
+//   server: socket,
+//   interval: 5000
+// });
+
+// timesync in place on frontend side
+// ts.on('sync', function (state) {
+//   console.log('sync ' + state + '');
+// });
+
+// timesync in place on frontend side
+// ts.on('change', function (offset) {
+//   console.log('changed offset: ' + offset + ' ms');
+// });
+
+// timesync in place on frontend side
+// ts.send = function (socket, data, timeout) {
+//       //console.log('send', data);
+//       return new Promise(function (resolve, reject) {
+//         var timeoutFn = setTimeout(reject, timeout);
+//
+//         socket.emit('timesync', data, function () {
+//           clearTimeout(timeoutFn);
+//           resolve();
+//         });
+//       });
+//     };
+
 
 
 const Chat = () => {
@@ -22,14 +53,14 @@ const Chat = () => {
             setThisUser(location.state.user);
         else
             setThisUser(window.localStorage.getItem('user'));
-            
+
         socket.auth = {email: location.state.user};
         socket.connect();
         fetch(process.env.REACT_APP_API_URL + 'users')
             .then(async (response) => {
                 const {users} = await response.json();
                 setUsers(() => {
-                    const temp = {}; 
+                    const temp = {};
                     users
                         .filter((user) => user.email !== thisUser)
                         .forEach((user) => {
@@ -56,7 +87,7 @@ const Chat = () => {
                             }
                         }
                     } else if(message.receiver === thisUser) {
-                        if(chats[message.sender]) 
+                        if(chats[message.sender])
                             chats[message.sender].messages.push(message);
                         else {
                             chats[message.sender] = {
@@ -80,9 +111,9 @@ const Chat = () => {
                     if(user.email !== thisUser) {
                         if(chats[user.email])
                             chats[user.email] = {...chats[user.email], name: user.name, room: user.room, online: user.online};
-                        else 
+                        else
                             chats[user.email] = {messages: [], name: user.name, room: user.room, user: user.email, online: user.online};
-                        
+
                     }
                 });
                 setChats(() => Object.assign({}, chats));
@@ -136,13 +167,19 @@ const Chat = () => {
             })
         });
 
+        // // timesync in place on frontend side
+        // socket.on('timesync', function (data) {
+        //   console.log('receive', data);
+        //   //ts.receive(null, data);
+        // });
+
         socket.on('groupMessage', ({message, from}) => {
             // console.log(message, from);
             setChats(prevChats => {
                 prevChats[from].messages.push(message);
                 return Object.assign({}, prevChats);
             })
-        }) 
+        })
 
         return () => socket.disconnect();
     }, []);
@@ -150,15 +187,15 @@ const Chat = () => {
     return(
         <div>
             <Grid container spacing={0}>
-                <LeftPane users={users} 
-                    setSelectedUser={setSelectedUser} 
+                <LeftPane users={users}
+                    setSelectedUser={setSelectedUser}
                     chats={chats}
-                    setChats={setChats} 
+                    setChats={setChats}
                     thisUser={thisUser}
                     setUsers={setUsers}
                     socket={socket}
                 />
-                <RightPane users={users}    
+                <RightPane users={users}
                     selectedUser={selectedUser}
                     chats={chats}
                     setChats={setChats}
