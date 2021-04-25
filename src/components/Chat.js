@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import LeftPane from './LeftPane';
 import RightPane from './RightPane';
-import { timesync } from 'timesync';
 
 import '../css/Chat.css';
 

@@ -32,6 +32,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                         <div className="sender-name">{users[msg.sender].name}</div>
                     )}
                     <div>{msg.message}</div>
+                    <div className="msg-time">{new Date(msg.time).toLocaleTimeString()}</div>
                 </div>
             </div>
         )) : (
@@ -51,8 +52,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    //time: new Date(),
-                    time: messageTime,
+                    time: messageTime || new Date(),
                 },
                 to: selectedUser
             });
@@ -62,7 +62,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(),
+                    time: messageTime || new Date(),
                 };
 
                 prevChats[selectedUser].messages.push(message);
@@ -75,7 +75,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(),
+                    time: messageTime || new Date(),
                 },
                 to: selectedUser
             });
@@ -85,7 +85,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                     message: input,
                     sender: thisUser,
                     receiver: selectedUser,
-                    time: new Date(),
+                    time: messageTime || new Date(),
                 };
 
                 if(prevChats[selectedUser] && prevChats[selectedUser].messages.length > 0){
@@ -123,6 +123,11 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                 'Content-Type': 'Application/json'
             }
         });
+
+        socket.emit('joinRoom', {
+            roomCode,
+        });
+        
         setChats(prevChats => {
             prevChats[roomCode] = {
                 messages: [],

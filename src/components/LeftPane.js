@@ -138,7 +138,9 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
             }
         });
 
-        // socket.emit('newRoom', )
+        socket.emit('joinRoom', {
+            roomCode: code.trim(),
+        })
 
         setRoomMenu(null);
         setRoomName('');
