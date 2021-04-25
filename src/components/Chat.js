@@ -1,4 +1,5 @@
-import { Grid } from '@material-ui/core';
+import MuiAlert from '@material-ui/lab/Alert';
+import { Grid, Snackbar } from '@material-ui/core';
 import { io } from 'socket.io-client';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -7,44 +8,18 @@ import RightPane from './RightPane';
 
 import '../css/Chat.css';
 
-const socket = io(process.env.REACT_APP_SOCKET_URL, { autoConnect: false });
-
-// timesync in place on frontend side
-// const ts = timesync.create({
-//   server: socket,
-//   interval: 5000
-// });
-
-// timesync in place on frontend side
-// ts.on('sync', function (state) {
-//   console.log('sync ' + state + '');
-// });
-
-// timesync in place on frontend side
-// ts.on('change', function (offset) {
-//   console.log('changed offset: ' + offset + ' ms');
-// });
-
-// timesync in place on frontend side
-// ts.send = function (socket, data, timeout) {
-//       //console.log('send', data);
-//       return new Promise(function (resolve, reject) {
-//         var timeoutFn = setTimeout(reject, timeout);
-//
-//         socket.emit('timesync', data, function () {
-//           clearTimeout(timeoutFn);
-//           resolve();
-//         });
-//       });
-//     };
-
-
-
 const Chat = () => {
     const [thisUser, setThisUser] = useState('');
     const [users, setUsers] = useState({});
     const [selectedUser, setSelectedUser] = useState('');
     const [chats, setChats] = useState({});
+    const [server, setServer] = useState('');
+    const [socketServer, setSocketServer] = useState('');
+    const [showToast, setShowToast] = useState(false);
+    const [toastMsg, setToastMsg] = useState(false);
+    const [socket, setSocket] = useState(null);
+
+
     const location = useLocation();
 
     useEffect(() => {
@@ -53,9 +28,28 @@ const Chat = () => {
         else
             setThisUser(window.localStorage.getItem('user'));
 
-        socket.auth = {email: location.state.user};
-        socket.connect();
-        fetch(process.env.REACT_APP_API_URL + 'users')
+        if(location.state.server && location.state.socketServer) {
+            setServer(location.state.server);
+            setSocketServer(location.state.socketServer);
+            let s = io(location.state.socketServer, { autoConnect: false })            
+            s.auth = {email: location.state.user};
+            s.connect();
+            setSocket(s);
+        } else {
+            const servers = process.env.REACT_APP_SERVERS.split(', ');
+            const port = servers[Math.floor(Math.random() * servers.length)];
+            setServer(`http://localhost:${port}/`)
+            const socketPort = parseInt(port) + 10
+            setSocketServer(`http://localhost:${socketPort}/`);
+            setToastMsg(`Connected to localhost:${port} and localhost:${socketPort}`);
+            setShowToast(true);
+            let s = io(`http://localhost:${socketPort}`, { autoConnect: false })            
+            s.auth = {email: location.state.user};
+            s.connect();
+            setSocket(s);
+        }
+
+        fetch(server + 'users')
             .then(async (response) => {
                 const {users} = await response.json();
                 setUsers(() => {
@@ -68,10 +62,10 @@ const Chat = () => {
                     return Object.assign({}, temp);
                 });
             });
-    }, [location.state.user, thisUser]);
+    }, [location.state.user, thisUser, server, location.state.server, location.state.socketServer]);
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + 'chats/' + thisUser)
+        fetch(server + 'chats/' + thisUser)
             .then(async (response) => {
                 const {messages, chatList} = await response.json();
                 const chats = {};
@@ -117,71 +111,78 @@ const Chat = () => {
                 });
                 setChats(() => Object.assign({}, chats));
             })
-    }, [thisUser]);
+    }, [thisUser, server]);
 
     useEffect(() => {
-        socket.on("connect_error", (err) => {
-            console.log(err.message)
-        });
+        if(socket) {
+            
+            socket.on("connect_error", (err) => {
+                console.log(err.message)
+            });
 
-        socket.on("new connection", (user) => {
-            console.log('new connection', user);
-            setUsers(prevUsers => {
-                if(prevUsers[user.email])
-                    prevUsers[user.email].online = true
-                return Object.assign({}, prevUsers);
+            socket.on("new connection", (user) => {
+                console.log('new connection', user);
+                setUsers(prevUsers => {
+                    if(prevUsers[user.email])
+                        prevUsers[user.email].online = true
+                    return Object.assign({}, prevUsers);
+                });
+                setChats(prevChats => {
+                    if(prevChats[user.email])
+                        prevChats[user.email].online = true
+                    return Object.assign({}, prevChats);
+                });
             });
-            setChats(prevChats => {
-                if(prevChats[user.email])
-                    prevChats[user.email].online = true
-                return Object.assign({}, prevChats);
-            });
-        });
 
-        socket.on("user disconnected", (email) => {
-            console.log('user disconnected', email);
-            setUsers(prevUsers => {
-                if(prevUsers[email])
-                    prevUsers[email].online = false
-                return Object.assign({}, prevUsers);
+            socket.on("user disconnected", (email) => {
+                console.log('user disconnected', email);
+                setUsers(prevUsers => {
+                    if(prevUsers[email])
+                        prevUsers[email].online = false
+                    return Object.assign({}, prevUsers);
+                });
+                setChats(prevChats => {
+                    if(prevChats[email])
+                        prevChats[email].online = false
+                    return Object.assign({}, prevChats);
+                });
             });
-            setChats(prevChats => {
-                if(prevChats[email])
-                    prevChats[email].online = false
-                return Object.assign({}, prevChats);
-            });
-        });
 
-        socket.on("message", ({message, from}) => {
-            setChats(prevChats => {
-                if(prevChats[from] && prevChats[from].messages.length > 0)
+            socket.on("message", ({message, from}) => {
+                setChats(prevChats => {
+                    if(prevChats[from] && prevChats[from].messages.length > 0)
+                        prevChats[from].messages.push(message);
+                    else
+                        prevChats[from] = {
+                            messages: [message],
+                            user: from
+                        }
+
+                    return Object.assign({}, prevChats);
+                })
+            });
+
+            // // timesync in place on frontend side
+            // socket.on('timesync', function (data) {
+            //   console.log('receive', data);
+            //   //ts.receive(null, data);
+            // });
+
+            socket.on('groupMessage', ({message, from}) => {
+                // console.log(message, from);
+                setChats(prevChats => {
                     prevChats[from].messages.push(message);
-                else
-                    prevChats[from] = {
-                        messages: [message],
-                        user: from
-                    }
-
-                return Object.assign({}, prevChats);
+                    return Object.assign({}, prevChats);
+                })
             })
-        });
 
-        // // timesync in place on frontend side
-        // socket.on('timesync', function (data) {
-        //   console.log('receive', data);
-        //   //ts.receive(null, data);
-        // });
+            return () => socket.disconnect();
 
-        socket.on('groupMessage', ({message, from}) => {
-            // console.log(message, from);
-            setChats(prevChats => {
-                prevChats[from].messages.push(message);
-                return Object.assign({}, prevChats);
-            })
-        })
-
-        return () => socket.disconnect();
+        }
     }, []);
+
+    const Alert = (props) => (<MuiAlert elevation={6} variant="filled" {...props} />);
+
 
     return(
         <div>
@@ -193,6 +194,7 @@ const Chat = () => {
                     thisUser={thisUser}
                     setUsers={setUsers}
                     socket={socket}
+                    server={server}
                 />
                 <RightPane users={users}
                     selectedUser={selectedUser}
@@ -200,8 +202,14 @@ const Chat = () => {
                     setChats={setChats}
                     socket={socket}
                     thisUser={thisUser}
+                    server={server}
                 />
             </Grid>
+            <Snackbar open={showToast} autoHideDuration={3000} onClose={() => setShowToast(false)}>
+                <Alert severity='success' onClose={() => setShowToast(false)}>
+                    {toastMsg}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }

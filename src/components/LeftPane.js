@@ -24,7 +24,7 @@ import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import GroupIcon from '@material-ui/icons/Group';
 import { Socket } from 'socket.io-client';
 
-const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, socket}) => {
+const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, socket, server}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
@@ -34,7 +34,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
     const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + 'user/' + thisUser)
+        fetch(server + 'user/' + thisUser)
         .then(async (result) => {
             const {name} = await result.json();
             if(name) {
@@ -87,7 +87,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
     }
 
     const saveName = async () => {
-        const result = await fetch(process.env.REACT_APP_API_URL + 'updateName', {
+        const result = await fetch(server + 'updateName', {
             method: 'POST',
             body: JSON.stringify({email: thisUser, name}),
             headers: {
@@ -130,7 +130,7 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
             return Object.assign({}, prevUsers);
         })
 
-        await fetch(process.env.REACT_APP_API_URL + 'createRoom', {
+        await fetch(server + 'createRoom', {
             method: 'POST',
             body: JSON.stringify({email: code.trim(), user: thisUser, name: roomName}),
             headers: {

@@ -6,18 +6,20 @@ import { useEffect, useState } from 'react';
 
 import SendIcon from '@material-ui/icons/Send';
 
-const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => {
+const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser, server}) => {
     const [input, setInput] = useState('');
     const [messageTime, setMessageTime] = useState('');
 
     ////////////////////////////////////////////////////////////////////////////
     useEffect(() => {
       // timesync in place on frontend side
-      socket.on('timesync', function (data) {
-        console.log('receive', data);
-        setMessageTime(data.time);
-        //ts.receive(null, data);
-      });
+      if(socket) {
+        socket.on('timesync', function (data) {
+            console.log('receive', data);
+            setMessageTime(data.time);
+            //ts.receive(null, data);
+          });
+      }
     }, []);
     ////////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +98,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
                         ...users[selectedUser]
                     };
 
-                    fetch(process.env.REACT_APP_API_URL + 'addToChat', {
+                    fetch(server + 'addToChat', {
                         method: 'POST',
                         body: JSON.stringify({receiver: selectedUser, sender: thisUser}),
                         headers: {
@@ -113,7 +115,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
     }
 
     const joinRoom = async (roomCode) => {
-        await fetch(process.env.REACT_APP_API_URL + 'addRoom', {
+        await fetch(server + 'addRoom', {
             method: 'POST',
             body: JSON.stringify({
                 email: thisUser,
@@ -127,7 +129,7 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser}) => 
         socket.emit('joinRoom', {
             roomCode,
         });
-        
+
         setChats(prevChats => {
             prevChats[roomCode] = {
                 messages: [],

@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import '../css/Login.css';
 import {TextField, Button, Snackbar} from '@material-ui/core';
@@ -10,13 +10,26 @@ const Login = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState(false);
   const [toastStatus, setToastStatus] = useState(false);
+  const [server, setServer] = useState('');
+  const [socketServer, setSocketServer] = useState('');
   const errorCodes = new Set([401, 403, 404]);
   const history = useHistory();
 
   const Alert = (props) => (<MuiAlert elevation={6} variant="filled" {...props} />);
 
+  useEffect(() => {
+	const servers = process.env.REACT_APP_SERVERS.split(', ');
+	const port = servers[Math.floor(Math.random() * servers.length)];
+	setServer(`http://localhost:${port}/`)
+	const socketPort = parseInt(port) + 10;
+	setSocketServer(`http://localhost:${socketPort}/`);
+	setToastMsg(`Connected to localhost:${port} and localhost:${socketPort}`);
+	setToastStatus(200);
+	setShowToast(true);
+  }, []);
+
   const login = async () => {
-	const response = await fetch(process.env.REACT_APP_API_URL + 'login', {
+	const response = await fetch(server + 'login', {
 	  method: 'POST',
 	  body: JSON.stringify({email, password}),
 	  headers: {
@@ -31,13 +44,13 @@ const Login = () => {
 		window.localStorage.setItem('user', email);
 		history.push({
 			pathname: 'chat',
-			state: {user: email}
+			state: {user: email, server, socketServer}
 		});
 	}
   }
 
   const register = async () => {
-	const response = await fetch(process.env.REACT_APP_API_URL + 'register', {
+	const response = await fetch(server + 'register', {
 	  method: 'POST',
 	  body: JSON.stringify({email, password}),
 	  headers: {
