@@ -22,9 +22,10 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import GroupIcon from '@material-ui/icons/Group';
-import { Socket } from 'socket.io-client';
 
-const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, socket, server}) => {
+const LeftPane = ({users, setSelectedUser, chats, 
+        setChats, thisUser, setUsers, 
+        socket, server, setShowToast, setToastMsg, resetConnection}) => {
     const [accMenu, setAccMenu] = useState(null);
     const [roomMenu, setRoomMenu] = useState(null);
     const [name, setName] = useState('');
@@ -40,6 +41,10 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
             if(name) {
                 setName(name);
             }
+        })
+        .catch(err => {
+            setToastMsg(`Can't contact server. Please reconnect again`);
+            setShowToast(true);
         })
     }, [thisUser]);
 
@@ -87,13 +92,18 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
     }
 
     const saveName = async () => {
-        const result = await fetch(server + 'updateName', {
-            method: 'POST',
-            body: JSON.stringify({email: thisUser, name}),
-            headers: {
-                'Content-Type': 'Application/json'
-            }
-        });
+        try {
+            const result = await fetch(server + 'updateName', {
+                method: 'POST',
+                body: JSON.stringify({email: thisUser, name}),
+                headers: {
+                    'Content-Type': 'Application/json'
+                }
+            });
+        } catch(err) {
+            setToastMsg(`Can't contact server. Please reconnect again`);
+            setShowToast(true);
+        }
     }
 
     const generateString = () => {
@@ -130,13 +140,18 @@ const LeftPane = ({users, setSelectedUser, chats, setChats, thisUser, setUsers, 
             return Object.assign({}, prevUsers);
         })
 
-        await fetch(server + 'createRoom', {
-            method: 'POST',
-            body: JSON.stringify({email: code.trim(), user: thisUser, name: roomName}),
-            headers: {
-                'Content-Type': 'Application/json'
-            }
-        });
+        try {
+            await fetch(server + 'createRoom', {
+                method: 'POST',
+                body: JSON.stringify({email: code.trim(), user: thisUser, name: roomName}),
+                headers: {
+                    'Content-Type': 'Application/json'
+                }
+            });
+        } catch(err) {
+            setToastMsg(`Can't contact server. Please reconnect again`);
+            setShowToast(true);
+        }
 
         socket.emit('joinRoom', {
             roomCode: code.trim(),

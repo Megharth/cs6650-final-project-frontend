@@ -1,7 +1,7 @@
 import MuiAlert from '@material-ui/lab/Alert';
 import { Grid, Snackbar } from '@material-ui/core';
 import { io } from 'socket.io-client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import LeftPane from './LeftPane';
 import RightPane from './RightPane';
@@ -22,6 +22,20 @@ const Chat = () => {
 
     const location = useLocation();
 
+    const resetConnection = useCallback(() => {
+        const servers = process.env.REACT_APP_SERVERS.split(', ');
+        const port = servers[Math.floor(Math.random() * servers.length)];
+        setServer(`http://localhost:${port}/`)
+        const socketPort = parseInt(port) + 10
+        setSocketServer(`http://localhost:${socketPort}/`);
+        setToastMsg(`Connected to localhost:${port} and localhost:${socketPort}`);
+        setShowToast(true);
+        let s = io(`http://localhost:${socketPort}`, { autoConnect: false })            
+        s.auth = {email: location.state.user};
+        s.connect();
+        setSocket(s);
+    }, [location.state.user]);
+
     useEffect(() => {
         if(location.state.user)
             setThisUser(location.state.user);
@@ -36,19 +50,13 @@ const Chat = () => {
             s.connect();
             setSocket(s);
         } else {
-            const servers = process.env.REACT_APP_SERVERS.split(', ');
-            const port = servers[Math.floor(Math.random() * servers.length)];
-            setServer(`http://localhost:${port}/`)
-            const socketPort = parseInt(port) + 10
-            setSocketServer(`http://localhost:${socketPort}/`);
-            setToastMsg(`Connected to localhost:${port} and localhost:${socketPort}`);
-            setShowToast(true);
-            let s = io(`http://localhost:${socketPort}`, { autoConnect: false })            
-            s.auth = {email: location.state.user};
-            s.connect();
-            setSocket(s);
+        //    resetConnection();
         }
 
+        
+    }, [location.state.user, location.state.server, location.state.socketServer]);
+
+    useEffect(() => {
         fetch(server + 'users')
             .then(async (response) => {
                 const {users} = await response.json();
@@ -61,8 +69,13 @@ const Chat = () => {
                         });
                     return Object.assign({}, temp);
                 });
+            }).catch(err => {
+                setToastMsg(`Can't contact server. Please reconnect again`);
+                setShowToast(true);
+                // console.log('here');
+                resetConnection();
             });
-    }, [location.state.user, thisUser, server, location.state.server, location.state.socketServer]);
+    }, [server, thisUser, resetConnection]);
 
     useEffect(() => {
         fetch(server + 'chats/' + thisUser)
@@ -111,13 +124,18 @@ const Chat = () => {
                 });
                 setChats(() => Object.assign({}, chats));
             })
+            .catch(err => {
+                setToastMsg(`Can't contact server. Please reconnect again`);
+                setShowToast(true);
+                // resetConnection();
+            });
     }, [thisUser, server]);
 
     useEffect(() => {
         if(socket) {
             
             socket.on("connect_error", (err) => {
-                console.log(err.message)
+                console.log("err",err.message)
             });
 
             socket.on("new connection", (user) => {
@@ -162,12 +180,6 @@ const Chat = () => {
                 })
             });
 
-            // // timesync in place on frontend side
-            // socket.on('timesync', function (data) {
-            //   console.log('receive', data);
-            //   //ts.receive(null, data);
-            // });
-
             socket.on('groupMessage', ({message, from}) => {
                 // console.log(message, from);
                 setChats(prevChats => {
@@ -179,7 +191,7 @@ const Chat = () => {
             return () => socket.disconnect();
 
         }
-    }, []);
+    }, [socket]);
 
     const Alert = (props) => (<MuiAlert elevation={6} variant="filled" {...props} />);
 
@@ -195,6 +207,9 @@ const Chat = () => {
                     setUsers={setUsers}
                     socket={socket}
                     server={server}
+                    setToastMsg={setToastMsg}
+                    setShowToast={setShowToast}
+                    resetConnection={resetConnection}
                 />
                 <RightPane users={users}
                     selectedUser={selectedUser}
@@ -203,6 +218,9 @@ const Chat = () => {
                     socket={socket}
                     thisUser={thisUser}
                     server={server}
+                    setToastMsg={setToastMsg}
+                    setShowToast={setShowToast}
+                    resetConnection={resetConnection}
                 />
             </Grid>
             <Snackbar open={showToast} autoHideDuration={3000} onClose={() => setShowToast(false)}>

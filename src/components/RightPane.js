@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react';
 
 import SendIcon from '@material-ui/icons/Send';
 
-const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser, server}) => {
+const RightPane = ({users, selectedUser, chats, 
+        setChats, socket, thisUser, server, 
+        setShowToast, setToastMsg, resetConnection}) => {
     const [input, setInput] = useState('');
     const [messageTime, setMessageTime] = useState('');
 
@@ -115,28 +117,32 @@ const RightPane = ({users, selectedUser, chats, setChats, socket, thisUser, serv
     }
 
     const joinRoom = async (roomCode) => {
-        await fetch(server + 'addRoom', {
-            method: 'POST',
-            body: JSON.stringify({
-                email: thisUser,
-                room: {...users[roomCode], email: roomCode}
-            }),
-            headers: {
-                'Content-Type': 'Application/json'
-            }
-        });
-
-        socket.emit('joinRoom', {
-            roomCode,
-        });
-
-        setChats(prevChats => {
-            prevChats[roomCode] = {
-                messages: [],
-                ...users[roomCode]
-            }
-            return Object.assign({}, prevChats);
-        });
+        try {
+            await fetch(server + 'addRoom', {
+                method: 'POST',
+                body: JSON.stringify({
+                    email: thisUser,
+                    room: {...users[roomCode], email: roomCode}
+                }),
+                headers: {
+                    'Content-Type': 'Application/json'
+                }
+            });
+            socket.emit('joinRoom', {
+                roomCode,
+            });
+    
+            setChats(prevChats => {
+                prevChats[roomCode] = {
+                    messages: [],
+                    ...users[roomCode]
+                }
+                return Object.assign({}, prevChats);
+            });
+        } catch(err) {
+            setToastMsg(`Cant connect to the server, trying to connect to some other server. Please retry again.`);
+    		setShowToast(true);
+        }
     }
     return(
         <Grid item sm={9} xs={12}>

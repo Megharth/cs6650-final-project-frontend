@@ -17,7 +17,7 @@ const Login = () => {
 
   const Alert = (props) => (<MuiAlert elevation={6} variant="filled" {...props} />);
 
-  useEffect(() => {
+  const resetConnection = () => {
 	const servers = process.env.REACT_APP_SERVERS.split(', ');
 	const port = servers[Math.floor(Math.random() * servers.length)];
 	setServer(`http://localhost:${port}/`)
@@ -26,26 +26,36 @@ const Login = () => {
 	setToastMsg(`Connected to localhost:${port} and localhost:${socketPort}`);
 	setToastStatus(200);
 	setShowToast(true);
+  }
+  useEffect(() => {
+	resetConnection();
   }, []);
 
   const login = async () => {
-	const response = await fetch(server + 'login', {
-	  method: 'POST',
-	  body: JSON.stringify({email, password}),
-	  headers: {
-		'Content-Type': 'application/json'
-	  }
-	});
-	const body = await response.json();
-	setToastMsg(body.message);
-	setToastStatus(body.status);
-	setShowToast(true);
-	if(!errorCodes.has(body.status)){
-		window.localStorage.setItem('user', email);
-		history.push({
-			pathname: 'chat',
-			state: {user: email, server, socketServer}
-		});
+	try {
+		const response = await fetch(server + 'login', {
+			method: 'POST',
+			body: JSON.stringify({email, password}),
+			headers: {
+			  'Content-Type': 'application/json'
+			},
+		  });
+		  const body = await response.json();
+		  setToastMsg(body.message);
+		  setToastStatus(body.status);
+		  setShowToast(true);
+		  if(!errorCodes.has(body.status)){
+			  window.localStorage.setItem('user', email);
+			  history.push({
+				  pathname: 'chat',
+				  state: {user: email, server, socketServer}
+			  });
+		  }
+	} catch(e) {
+		setToastMsg(`Cant connect to the server, trying to connect to some other server. Please retry again.`);
+		setToastStatus(404);
+		setShowToast(true);
+		resetConnection();
 	}
   }
 
