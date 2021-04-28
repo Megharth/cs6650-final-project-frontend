@@ -118,7 +118,7 @@ const RightPane = ({users, selectedUser, chats,
 
     const joinRoom = async (roomCode) => {
         try {
-            await fetch(server + 'addRoom', {
+            const response = await fetch(server + 'addRoom', {
                 method: 'POST',
                 body: JSON.stringify({
                     email: thisUser,
@@ -128,13 +128,15 @@ const RightPane = ({users, selectedUser, chats,
                     'Content-Type': 'Application/json'
                 }
             });
+
+            const {messages} = await response.json();
             socket.emit('joinRoom', {
                 roomCode,
             });
     
             setChats(prevChats => {
                 prevChats[roomCode] = {
-                    messages: [],
+                    messages,
                     ...users[roomCode]
                 }
                 return Object.assign({}, prevChats);

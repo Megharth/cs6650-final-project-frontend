@@ -186,6 +186,13 @@ const Chat = () => {
                     prevChats[from].messages.push(message);
                     return Object.assign({}, prevChats);
                 })
+            });
+
+            socket.on('newRoomToUsers', (room) => {
+                setUsers((prevUsers) => {
+                    prevUsers[room.email] = {name: room.name, online: false, room: true}
+                    return Object.assign({}, prevUsers);
+                });
             })
 
             return () => socket.disconnect();

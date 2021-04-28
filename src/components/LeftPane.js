@@ -53,7 +53,6 @@ const LeftPane = ({users, setSelectedUser, chats,
     }
 
     const createList = (users) => {
-        console.log(users);
         return Object.keys(users).length > 0 ? (
             <List>
                 {
@@ -155,7 +154,11 @@ const LeftPane = ({users, setSelectedUser, chats,
 
         socket.emit('joinRoom', {
             roomCode: code.trim(),
-        })
+        });
+
+        socket.emit('newRoomToUsers', {
+            email: code.trim(), name: roomName,
+        });
 
         setRoomMenu(null);
         setRoomName('');
