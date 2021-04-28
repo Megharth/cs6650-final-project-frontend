@@ -1,3 +1,7 @@
+# Instructions for testing
+
+https://docs.google.com/document/d/1MKWj9ST-vIQMSCrEq82BOAPZ__wjefZb0AVgSfJ429c/edit
+
 # Setting up the frontend
 
 ## Packages
